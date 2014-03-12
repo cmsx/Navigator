@@ -30,11 +30,11 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $o = new OrderBy();
     $o->setColumn('name');
 
-    $this->assertEquals('/orderby:name/', $o->asURL()->toString(), 'Адрес для сортировки без указанного URL');
+    $this->assertEquals('/orderby:name/', $o->asUrl()->toString(), 'Адрес для сортировки без указанного URL');
 
     $o->setUrl(new URL('test', 'me', array('orderby' => 'id', 'id' => 2)));
 
-    $this->assertEquals('/test/me/orderby:name/id:2/', $o->asURL()->toString(), 'Адрес для сортировки с указанным URL');
+    $this->assertEquals('/test/me/orderby:name/id:2/', $o->asUrl()->toString(), 'Адрес для сортировки с указанным URL');
 
     $this->assertEquals('`name` ASC', $o->asSQL(), 'Сортировка по имени колонки по-возрастанию');
 
@@ -62,6 +62,8 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $this->assertCount(3, $n->getOrderByOptions(), 'Всего три опции для сортировки');
     $this->assertArrayHasKey('id', $n->getOrderByOptions(), 'Ключи массива - имена столбцов');
 
+    $this->assertFalse($n->checkOrderByOptionExists('blabla'), 'Опция не существует');
+
     try {
       $n->getOrderByOption('blabla');
 
@@ -83,7 +85,34 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 
     $this->assertEquals('count(*) DESC', $n->getOrderBy()->asSQL(), 'Явно указанная сортировка, как SQL');
 
-    $this->assertEquals('/hello/id:1/orderby:_count/', $n->getOrderBy()->asURL()->toString(), 'Адрес для сортировки');
+    $s = $n->getOrderBy()->asUrl()->toString();
+    $this->assertEquals('/hello/orderby:_count/', $s, 'Адрес для сортировки без лишних параметров');
+  }
+
+  function testCleanUrl()
+  {
+    $n = $this->makeNavigator('/hello/one:two/id:1/id:2/bla:bla/page:3/orderby:name/');
+
+    $this->assertEquals('/hello/', $n->getUrlClean()->toString(), 'В очищенном URL изначально нет лишних параметров');
+
+    $n->addOrderBy('name');
+
+    $this->assertEquals(array('name', true), $n->processOrderColumnFromUrl('name'), 'Прямая сортировка в URL');
+    $this->assertEquals(array('name', false), $n->processOrderColumnFromUrl('_name'), 'Обратная сортировка в URL');
+
+    $o = $n->getOrderBy();
+
+    $this->assertNotEmpty($o, 'Значение сортировки получено из адреса');
+    $this->assertEquals('/hello/orderby:name/', $o->asUrl()->toString(), 'Адрес значения корректный');
+    $this->assertEquals('/hello/orderby:name/', $n->getUrlClean()->toString(), 'Добавили возможность сортировки по name');
+
+    $n = $this->makeNavigator('/hello/page:3/orderby:_name/');
+    $n->addOrderBy('name');
+
+    $o = $n->getOrderBy();
+
+    $this->assertEquals('/hello/orderby:_name/', $n->getUrlClean()->toString(), 'Сортировка по name по-убыванию');
+    $this->assertEquals('/hello/orderby:_name/', $o->asUrl()->toString(), 'Адрес значения по убыванию корректный');
   }
 
   function makeNavigator($uri, $post = array())

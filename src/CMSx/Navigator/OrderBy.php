@@ -2,15 +2,22 @@
 
 namespace CMSx\Navigator;
 
+use CMSx\Navigator;
 use CMSx\URL;
 
 /** Представление для сортировки */
 class OrderBy
 {
+  /** Имя параметра в URL */
+  const URL_PARAM = 'orderby';
+
   protected $column;
   protected $name;
   protected $sql;
   protected $asc = true;
+
+  /** @var Navigator */
+  protected $navigator;
 
   /** @var URL */
   protected $url;
@@ -30,9 +37,9 @@ class OrderBy
    *
    * @return URL
    */
-  public function asURL($asc = null)
+  public function asUrl($asc = null)
   {
-    return $this->getUrl()->setParameter('orderby', $this->asUrlParameter($asc));
+    return $this->getUrl()->setParameter(static::URL_PARAM, $this->asUrlParameter($asc));
   }
 
   /** Получение в виде инструкции для сортировки SQL */
@@ -98,6 +105,21 @@ class OrderBy
 
   public function getUrl()
   {
-    return $this->url ? : new URL;
+    if ($this->url) {
+      return $this->url;
+    }
+
+    if ($this->navigator) {
+      return $this->navigator->getUrlClean();
+    }
+
+    return new URL;
+  }
+
+  public function setNavigator(Navigator $navigator)
+  {
+    $this->navigator = $navigator;
+
+    return $this;
   }
 }

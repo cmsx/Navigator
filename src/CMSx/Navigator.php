@@ -48,6 +48,35 @@ class Navigator
     $this->init();
   }
 
+  /** Обработка URL и Request для получения параметров */
+  protected function process()
+  {
+    if ($orderby = $this->getParameter(OrderBy::URL_PARAM)) {
+      list($col, $asc) = $this->processOrderColumnFromUrl($orderby);
+      if ($this->checkOrderByOptionExists($col)) {
+        $this->setOrderBy($col, $asc);
+      }
+    }
+  }
+
+  /**
+   * Получение URL без лишних параметров и постраничности
+   *
+   * @return URL
+   */
+  public function getUrlClean()
+  {
+    $this->process();
+
+    $u = $this->cloneUrl()->cleanParameters();
+
+    if ($o = $this->getOrderBy()) {
+      $u->addParameter('orderby', $o->asUrlParameter());
+    }
+
+    return $u;
+  }
+
   /**
    * Добавление возможности сортировки по колонке
    *
@@ -59,7 +88,7 @@ class Navigator
     $o->setColumn($column);
     $o->setName($name);
     $o->setSql($sql);
-    $o->setUrl($this->getUrl());
+    $o->setNavigator($this);
 
     $this->orderby_options[$column] = $o;
 
@@ -85,11 +114,37 @@ class Navigator
   {
     $opt = $this->getOrderByOptions();
 
-    if (!isset($opt[$column])) {
+    list($col, $asc) = $this->processOrderColumnFromUrl($column);
+
+    if (!$this->checkOrderByOptionExists($col)) {
       throw new Exception(sprintf(static::$err_arr[self::ERR_NO_ORDERBY_OPTION], $column), self::ERR_NO_ORDERBY_OPTION);
     }
 
-    return $opt[$column];
+    $o = $opt[$col];
+
+    return $o->setAsc($asc);
+  }
+
+  /** Определение колонки и порядка сортировки. Возвращает массив [colname, asc] */
+  public function processOrderColumnFromUrl($column)
+  {
+    // Обратная сортировка
+    if (false !== strpos($column, '_')) {
+      $col = substr($column, 1);
+      if ($this->checkOrderByOptionExists($col)) {
+        return array($col, false);
+      }
+    }
+
+    return array($column, true);
+  }
+
+  /** Проверка, что опция сортировки существует */
+  public function checkOrderByOptionExists($column)
+  {
+    $opt = $this->getOrderByOptions();
+
+    return isset($opt[$column]);
   }
 
   /** Явно указываем поле для сортировки */
@@ -127,6 +182,8 @@ class Navigator
    */
   public function getOrderBy()
   {
+    $this->process();
+
     if (!$this->orderby) {
       return $this->getDefaultOrderBy();
     }
