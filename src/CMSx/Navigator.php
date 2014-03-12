@@ -3,16 +3,21 @@
 namespace CMSx;
 
 use CMSx\URL;
+use CMSx\DB\Item;
 use CMSx\Navigator\Exception;
 use CMSx\Navigator\OrderBy;
 use Symfony\Component\HttpFoundation\Request;
 
 class Navigator
 {
-  const ERR_NO_ORDERBY_OPTION = 10;
+  const ERR_NO_ORDERBY_OPTION    = 10;
+  const ERR_CLASS_IS_NOT_ITEM    = 20;
+  const ERR_CLASS_IS_NOT_DEFINED = 30;
 
   protected static $err_arr = array(
-    self::ERR_NO_ORDERBY_OPTION => 'Поля "%s" нет в опциях для сортировки',
+    self::ERR_NO_ORDERBY_OPTION    => 'Поля "%s" нет в опциях для сортировки',
+    self::ERR_CLASS_IS_NOT_ITEM    => 'Класс "%s" не является наследником Item',
+    self::ERR_CLASS_IS_NOT_DEFINED => 'Класс для выборки не указан',
   );
 
   /** @var Request */
@@ -38,6 +43,15 @@ class Navigator
   protected $orderby;
   protected $orderby_asc;
 
+  /** Класс для объекта Item */
+  protected $class;
+
+  /** Имя функции для выборки элементов */
+  protected $func_find = 'Find';
+
+  /** Имя функции для подсчета элементов */
+  protected $func_count = 'Count';
+
   function __construct(Request $request, URL $url = null)
   {
     if (is_null($url)) {
@@ -49,6 +63,48 @@ class Navigator
     $this->setUrl($url);
 
     $this->init();
+  }
+
+  /**
+   * Получение массива с элементами, должен быть указан класс.
+   * Может быть настроено имя функции через setFuncFind или переопределено при наследовании
+   */
+  public function getItems()
+  {
+    return $this->callStatic(
+      $this->getFuncFind(),
+      array($this->processFilters(), $this->processOrderBy(), $this->getOnpage(), $this->getPage())
+    );
+  }
+
+  /** Получение условия для выборки */
+  public function processFilters()
+  {
+    return null;
+  }
+
+  /** Получение SQL для сортировки */
+  public function processOrderBy()
+  {
+    if ($o = $this->getOrderBy()) {
+      return $o->asSQL();
+    }
+
+    return null;
+  }
+
+  /** Установка класса для модели с которой работаем. Класс должен наследоваться от Item */
+  public function setClass($class)
+  {
+    $o = new $class;
+
+    if (!($o instanceof Item)) {
+      throw new Exception(sprintf(static::$err_arr[static::ERR_CLASS_IS_NOT_ITEM], $class), static::ERR_CLASS_IS_NOT_ITEM);
+    }
+
+    $this->class = $class;
+
+    return $this;
   }
 
   /** Общее количество элементов */
@@ -351,14 +407,62 @@ class Navigator
     return clone $this->url;
   }
 
+  /** Имя функции для подсчета элементов */
+  public function setFuncCount($func_count)
+  {
+    $this->func_count = $func_count;
+
+    return $this;
+  }
+
+  /** Имя функции для подсчета элементов */
+  public function getFuncCount()
+  {
+    return $this->func_count;
+  }
+
+  /** Имя функции для выборки элементов */
+  public function setFuncFind($func_find)
+  {
+    $this->func_find = $func_find;
+
+    return $this;
+  }
+
+  /** Имя функции для выборки элементов */
+  public function getFuncFind()
+  {
+    return $this->func_find;
+  }
+
   protected function init()
   {
   }
 
-  /** Функция подсчета количества элементов. Может быть переопределена */
+  /**
+   * Функция подсчета количества элементов.
+   * Если указан класс Item то работает автоматически от фильтра
+   * Может быть настроено имя функции через setFuncCount или переопределено при наследовании
+   */
   protected function countTotal()
   {
+    if ($this->class) {
+      $this->total = $this->callStatic($this->getFuncCount(), array($this->processFilters()));
+    }
+
     return $this->total;
+  }
+
+  /** Вызов статической функции по классу */
+  protected function callStatic($func, $args = array())
+  {
+    if (!$this->class) {
+      throw new Exception(static::$err_arr[static::ERR_CLASS_IS_NOT_DEFINED], static::ERR_CLASS_IS_NOT_DEFINED);
+    }
+
+    return $this->class
+      ? call_user_func_array($this->class . '::' . $func, $args)
+      : false;
   }
 
   /** Обработка URL и Request для получения параметров */

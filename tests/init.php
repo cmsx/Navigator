@@ -50,4 +50,20 @@ class MyItem extends Item
   {
     return 'test';
   }
+
+  public static function FindSome()
+  {
+    return array(1, 2, 3);
+  }
+
+  public static function CountSome()
+  {
+    return 42;
+  }
+}
+
+/** Класс не являющийся Item */
+class BlaBla
+{
+
 }
