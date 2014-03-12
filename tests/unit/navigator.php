@@ -113,11 +113,18 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 
     $this->assertEquals('/hello/orderby:_name/', $n->getUrlClean()->toString(), 'Сортировка по name по-убыванию');
     $this->assertEquals('/hello/orderby:_name/', $o->asUrl()->toString(), 'Адрес значения по убыванию корректный');
+
+    $n = makeNavigator('/hello/');
+    $n->setDefaultOrderBy('name', false);
+
+    $this->assertEquals('_name', $n->getOrderBy()->asUrlParameter(), 'Сортировка по-умолчанию есть');
+    $this->assertEquals('/hello/', $n->getUrlClean()->toString(), 'Сортировка по-умолчанию не подставляется в URL');
   }
 
   function testPagination()
   {
-    $n = makeNavigator('/hello/page:3/');
+    $n = makeNavigator('/hello/page:3/some:value/');
+
     $this->assertEquals(3, $n->getPage(), 'Открыта страница №3');
     $this->assertEquals('/hello/page:3/', $n->getPageUrl()->toString(), 'Адрес текущей страницы');
 
@@ -155,5 +162,9 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $n->setPage(6);
     $this->assertFalse($n->getNextPage(), 'Нет следующей страницы');
     $this->assertFalse($n->getNextPageUrl(), 'Нет URL для следующей страницы');
+
+    $n->addFilterEqual('some');
+
+    $this->assertEquals('/hello/some:value/page:2/', $n->getPageUrl(2)->toString(), 'Фильтры сохраняются при навигации');
   }
 }

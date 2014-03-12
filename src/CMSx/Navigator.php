@@ -317,8 +317,17 @@ class Navigator
 
     $u = $this->cloneUrl()->cleanParameters();
 
-    if ($o = $this->getOrderBy()) {
+    if ($o = $this->getOrderBy(true)) {
       $u->addParameter('orderby', $o->asUrlParameter());
+    }
+
+    if ($this->filters) {
+      foreach ($this->filters as $f) {
+        $val = $this->getParameter($f->getColumn());
+        if ($f->validate($val)) {
+          $u->addParameter($f->getColumn(), $val);
+        }
+      }
     }
 
     return $u;
@@ -403,9 +412,17 @@ class Navigator
     return $this;
   }
 
-  /** Установка сортировки по-умолчанию */
+  /**
+   * Установка сортировки по-умолчанию
+   *
+   * Если такого поля для сортировка не было добавлено ранее - оно будет подставлено автоматически
+   */
   public function setDefaultOrderBy($column, $asc = true)
   {
+    if (!$this->checkOrderByOptionExists($column)) {
+      $this->addOrderBy($column);
+    }
+
     $this->default_orderby     = $column;
     $this->default_orderby_asc = $asc;
 
@@ -427,12 +444,12 @@ class Navigator
    *
    * @return OrderBy
    */
-  public function getOrderBy()
+  public function getOrderBy($no_default = false)
   {
     $this->process();
 
     if (!$this->orderby) {
-      return $this->getDefaultOrderBy();
+      return $no_default ? false : $this->getDefaultOrderBy();
     }
 
     return $this->getOrderByOption($this->orderby)->setAsc($this->orderby_asc);
