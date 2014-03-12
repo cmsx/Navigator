@@ -24,6 +24,9 @@ class Navigator
   /** Количество элементов на странице */
   protected $onpage;
 
+  /** Количество элементов всего */
+  protected $total;
+
   /** Варианты сортировки */
   protected $orderby_options;
 
@@ -46,6 +49,113 @@ class Navigator
     $this->setUrl($url);
 
     $this->init();
+  }
+
+  /** Общее количество элементов */
+  public function getTotal($refresh = false)
+  {
+    if ($refresh || !$this->total) {
+      $this->total = $this->countTotal();
+    }
+
+    return $this->total ? : false;
+  }
+
+  /** Общее количество элементов */
+  public function setTotal($total)
+  {
+    $this->total = $total;
+
+    return $this;
+  }
+
+  /** Количество страниц */
+  public function getTotalPages()
+  {
+    if (!$total = $this->getTotal()) {
+      return false;
+    }
+
+    if (!$onpage = $this->getOnpage()) {
+      return 1;
+    }
+
+    return ceil($total / $onpage);
+  }
+
+  /** Номер последней страницы */
+  public function getLastPage()
+  {
+    return $this->getTotalPages();
+  }
+
+  /** @return bool|URL */
+  public function getLastPageUrl()
+  {
+    $p = $this->getLastPage();
+
+    return $p ? $this->getPageUrl($p) : false;
+  }
+
+  /** Номер первой страницы */
+  public function getFirstPage()
+  {
+    return 1;
+  }
+
+  /** @return bool|URL */
+  public function getFirstPageUrl()
+  {
+    $p = $this->getFirstPage();
+
+    return $p ? $this->getPageUrl($p) : false;
+  }
+
+  /** Номер следующей страницы */
+  public function getNextPage()
+  {
+    $p = $this->getPage();
+
+    return $p < $this->getTotalPages() ? $p + 1 : false;
+  }
+
+  /** @return bool|URL */
+  public function getNextPageUrl()
+  {
+    $p = $this->getNextPage();
+
+    return $p ? $this->getPageUrl($p) : false;
+  }
+
+  /** Номер предыдущей страницы */
+  public function getPrevPage()
+  {
+    $p = $this->getPage();
+
+    return $p > 1 ? $p - 1 : false;
+  }
+
+  /** @return bool|URL */
+  public function getPrevPageUrl()
+  {
+    $p = $this->getPrevPage();
+
+    return $p ? $this->getPageUrl($p) : false;
+  }
+
+  /**
+   * Ссылка на страницу с нужным номером
+   * Если номер не указан - будет возвращен адрес текущей страницы
+   *
+   * @return URL
+   */
+  public function getPageUrl($page = null)
+  {
+    if (is_null($page)) {
+      $page = $this->getPage();
+    }
+
+    return $this->getUrlClean()->setParameter('page', $page);
   }
 
   /**
@@ -243,6 +353,12 @@ class Navigator
 
   protected function init()
   {
+  }
+
+  /** Функция подсчета количества элементов. Может быть переопределена */
+  protected function countTotal()
+  {
+    return $this->total;
   }
 
   /** Обработка URL и Request для получения параметров */

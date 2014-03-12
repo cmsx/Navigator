@@ -115,6 +115,48 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $this->assertEquals('/hello/orderby:_name/', $o->asUrl()->toString(), 'Адрес значения по убыванию корректный');
   }
 
+  function testPagination()
+  {
+    $n = $this->makeNavigator('/hello/page:3/');
+    $this->assertEquals(3, $n->getPage(), 'Открыта страница №3');
+    $this->assertEquals('/hello/page:3/', $n->getPageUrl()->toString(), 'Адрес текущей страницы');
+
+    $this->assertFalse($n->getTotal(), 'Количество неизвестно');
+
+    $this->assertFalse($n->getTotalPages(), 'Количество страниц неизвестно');
+    $this->assertFalse($n->getLastPage(), 'Неизвестна последняя страница');
+    $this->assertFalse($n->getLastPageUrl(), 'Неизвестен адрес последней страницы');
+
+    $this->assertEquals('/hello/page:15/', $n->getPageUrl(15)->toString(), 'Адрес для произвольной страницы');
+
+    $n->setTotal(56);
+
+    $this->assertEquals(1, $n->getTotalPages(), 'Если есть количество без onpage, то всегда будет 1 страница');
+
+    $n->setOnpage(10);
+    $this->assertEquals(6, $n->getTotalPages(), 'Количество страниц при 10 штуках на странице');
+
+    $this->assertEquals(2, $n->getPrevPage(), 'Предыдущая страница');
+    $this->assertEquals('/hello/page:2/', $n->getPrevPageUrl()->toString(), 'Адрес предыдущей страница');
+
+    $this->assertEquals(4, $n->getNextPage(), 'Следующая страница');
+    $this->assertEquals('/hello/page:4/', $n->getNextPageUrl()->toString(), 'Адрес следующей страница');
+
+    $this->assertEquals(1, $n->getFirstPage(), 'Первая страница');
+    $this->assertEquals('/hello/page:1/', $n->getFirstPageUrl()->toString(), 'Адрес первой страницы');
+
+    $this->assertEquals(6, $n->getLastPage(), 'Последняя страница');
+    $this->assertEquals('/hello/page:6/', $n->getLastPageUrl()->toString(), 'Адрес последней страница');
+
+    $n->setPage(1);
+    $this->assertFalse($n->getPrevPage(), 'Нет предыдущей страницы');
+    $this->assertFalse($n->getPrevPageUrl(), 'Нет URL для предыдущей страницы');
+
+    $n->setPage(6);
+    $this->assertFalse($n->getNextPage(), 'Нет следующей страницы');
+    $this->assertFalse($n->getNextPageUrl(), 'Нет URL для следующей страницы');
+  }
+
   function makeNavigator($uri, $post = array())
   {
     $url = new URL($uri);
