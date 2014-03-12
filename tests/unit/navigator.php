@@ -11,7 +11,7 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 {
   function testCreate()
   {
-    $n = $this->makeNavigator('/hello/world/id:3/', array('one' => 'two'));
+    $n = makeNavigator('/hello/world/id:3/', array('one' => 'two'));
 
     $this->assertEquals('two', $n->getParameter('one'), 'Получаем параметр из Request');
     $this->assertEquals(3, $n->getParameter('id'), 'Получаем параметр из URL');
@@ -51,7 +51,7 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 
   function testOrderBy()
   {
-    $n = $this->makeNavigator('/hello/id:1/');
+    $n = makeNavigator('/hello/id:1/');
 
     $this->assertFalse($n->getOrderByOptions(), 'Опции для сортировки еще не указаны');
 
@@ -91,7 +91,7 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 
   function testCleanUrl()
   {
-    $n = $this->makeNavigator('/hello/one:two/id:1/id:2/bla:bla/page:3/orderby:name/');
+    $n = makeNavigator('/hello/one:two/id:1/id:2/bla:bla/page:3/orderby:name/');
 
     $this->assertEquals('/hello/', $n->getUrlClean()->toString(), 'В очищенном URL изначально нет лишних параметров');
 
@@ -106,7 +106,7 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $this->assertEquals('/hello/orderby:name/', $o->asUrl()->toString(), 'Адрес значения корректный');
     $this->assertEquals('/hello/orderby:name/', $n->getUrlClean()->toString(), 'Добавили возможность сортировки по name');
 
-    $n = $this->makeNavigator('/hello/page:3/orderby:_name/');
+    $n = makeNavigator('/hello/page:3/orderby:_name/');
     $n->addOrderBy('name');
 
     $o = $n->getOrderBy();
@@ -117,7 +117,7 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 
   function testPagination()
   {
-    $n = $this->makeNavigator('/hello/page:3/');
+    $n = makeNavigator('/hello/page:3/');
     $this->assertEquals(3, $n->getPage(), 'Открыта страница №3');
     $this->assertEquals('/hello/page:3/', $n->getPageUrl()->toString(), 'Адрес текущей страницы');
 
@@ -155,13 +155,5 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $n->setPage(6);
     $this->assertFalse($n->getNextPage(), 'Нет следующей страницы');
     $this->assertFalse($n->getNextPageUrl(), 'Нет URL для следующей страницы');
-  }
-
-  function makeNavigator($uri, $post = array())
-  {
-    $url = new URL($uri);
-    $req = Request::create($uri, 'POST', $post);
-
-    return new Navigator($req, $url);
   }
 }
