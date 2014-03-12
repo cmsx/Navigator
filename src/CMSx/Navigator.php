@@ -48,17 +48,6 @@ class Navigator
     $this->init();
   }
 
-  /** Обработка URL и Request для получения параметров */
-  protected function process()
-  {
-    if ($orderby = $this->getParameter(OrderBy::URL_PARAM)) {
-      list($col, $asc) = $this->processOrderColumnFromUrl($orderby);
-      if ($this->checkOrderByOptionExists($col)) {
-        $this->setOrderBy($col, $asc);
-      }
-    }
-  }
-
   /**
    * Получение URL без лишних параметров и постраничности
    *
@@ -254,5 +243,16 @@ class Navigator
 
   protected function init()
   {
+  }
+
+  /** Обработка URL и Request для получения параметров */
+  protected function process()
+  {
+    if ($orderby = $this->getParameter(OrderBy::URL_PARAM)) {
+      list($col, $asc) = $this->processOrderColumnFromUrl($orderby);
+      if ($this->checkOrderByOptionExists($col)) {
+        $this->setOrderBy($col, $asc);
+      }
+    }
   }
 }
