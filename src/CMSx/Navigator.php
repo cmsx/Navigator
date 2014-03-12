@@ -143,6 +143,14 @@ class Navigator
     return $this;
   }
 
+  /** Указание базовых условий выборки */
+  public function setDefaultConditions($where)
+  {
+    $this->default_conditions = $where;
+
+    return $this;
+  }
+
   /** Получение условия для выборки */
   public function processFilters()
   {
