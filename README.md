@@ -1,0 +1,4 @@
+Navigator
+=========
+
+Pagination, filtering, sorting
