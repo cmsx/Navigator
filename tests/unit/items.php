@@ -124,7 +124,11 @@ class ItemsTest extends PHPUnit_Framework_TestCase
 
   protected function setUp()
   {
-    if (!$this->db = makeDB()) {
+    if (!$this->db) {
+      $this->db = makeDB();
+    }
+
+    if (!$this->db) {
       $this->markTestSkipped('Не настроено подключение к БД');
     }
 
@@ -138,6 +142,13 @@ class ItemsTest extends PHPUnit_Framework_TestCase
 
     for ($i = 1; $i <= 20; $i++) {
       $this->db->insert('test')->setArray(array('name' => 'Item #' . $i))->execute();
+    }
+  }
+
+  protected function tearDown()
+  {
+    if ($this->db) {
+      $this->db->drop('test')->execute();
     }
   }
 }
