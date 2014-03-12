@@ -4,8 +4,11 @@ namespace CMSx;
 
 use CMSx\URL;
 use CMSx\DB\Item;
-use CMSx\Navigator\Exception;
+use CMSx\Navigator\Filter;
 use CMSx\Navigator\OrderBy;
+use CMSx\Navigator\Exception;
+use CMSx\Navigator\Filter\Equal;
+use CMSx\Navigator\Filter\Between;
 use Symfony\Component\HttpFoundation\Request;
 
 class Navigator
@@ -13,6 +16,7 @@ class Navigator
   const ERR_NO_ORDERBY_OPTION    = 10;
   const ERR_CLASS_IS_NOT_ITEM    = 20;
   const ERR_CLASS_IS_NOT_DEFINED = 30;
+  const ERR_FILTER_NOT_CALLABLE  = 40;
 
   protected static $err_arr = array(
     self::ERR_NO_ORDERBY_OPTION    => 'Поля "%s" нет в опциях для сортировки',
@@ -52,6 +56,18 @@ class Navigator
   /** Имя функции для подсчета элементов */
   protected $func_count = 'Count';
 
+  /** @var Filter[] */
+  protected $filters;
+
+  /** Сгенерированные условия для выборки */
+  protected $conditions;
+
+  /** Предзаданные условия для выборки */
+  protected $default_conditions;
+
+  /** Флаг, что выборка по запросу отсутствует */
+  protected $searchable = true;
+
   function __construct(Request $request, URL $url = null)
   {
     if (is_null($url)) {
@@ -71,16 +87,80 @@ class Navigator
    */
   public function getItems()
   {
+    if (!$this->getSearchable()) {
+      return false;
+    }
+
     return $this->callStatic(
       $this->getFuncFind(),
       array($this->processFilters(), $this->processOrderBy(), $this->getOnpage(), $this->getPage())
     );
   }
 
+  /**
+   * В $callable фильтра при вызове передаются аргументы Navigator, Filter
+   *
+   * @return Filter
+   */
+  public function addFilter($col, $callable, $validator = null)
+  {
+    return $this->filters[$col] = new Filter($col, $callable, $validator);
+  }
+
+  /** Фильтр значение равно */
+  public function addFilterEqual($col, $validator = null)
+  {
+    return $this->filters[$col] = new Equal($col, null, $validator);
+  }
+
+  /** Фильтр значение между */
+  public function addFilterBetween($col, $validator = null)
+  {
+    return $this->filters[$col] = new Between($col, null, $validator);
+  }
+
+  /** Добавление условия для выборки Where */
+  public function addCondition($value, $key = null)
+  {
+    if (!is_null($key)) {
+      $this->conditions[$key] = $value;
+    } else {
+      $this->conditions[] = $value;
+    }
+
+    return $this;
+  }
+
+  /** Добавление базового условия выборки Where */
+  public function addDefaultCondition($value, $key = null)
+  {
+    if (!is_null($key)) {
+      $this->default_conditions[$key] = $value;
+    } else {
+      $this->default_conditions[] = $value;
+    }
+
+    return $this;
+  }
+
   /** Получение условия для выборки */
   public function processFilters()
   {
-    return null;
+    $this->conditions = false;
+
+    if ($this->filters) {
+      foreach ($this->filters as $f) {
+        $f->process($this);
+      }
+    }
+
+    if (!$this->conditions) {
+      return $this->default_conditions;
+    }
+
+    return $this->default_conditions
+      ? array_merge($this->default_conditions, $this->conditions)
+      : $this->conditions;
   }
 
   /** Получение SQL для сортировки */
@@ -110,11 +190,15 @@ class Navigator
   /** Общее количество элементов */
   public function getTotal($refresh = false)
   {
+    if (!$this->getSearchable()) {
+      return 0;
+    }
+
     if ($refresh || !$this->total) {
       $this->total = $this->countTotal();
     }
 
-    return $this->total ? : false;
+    return $this->total ? : 0;
   }
 
   /** Общее количество элементов */
@@ -435,6 +519,18 @@ class Navigator
     return $this->func_find;
   }
 
+  public function setSearchable($searchable)
+  {
+    $this->searchable = $searchable;
+
+    return $this;
+  }
+
+  public function getSearchable()
+  {
+    return $this->searchable;
+  }
+
   protected function init()
   {
   }
@@ -447,7 +543,9 @@ class Navigator
   protected function countTotal()
   {
     if ($this->class) {
-      $this->total = $this->callStatic($this->getFuncCount(), array($this->processFilters()));
+      if (!$this->total = $this->callStatic($this->getFuncCount(), array($this->processFilters()))) {
+        $this->setSearchable(false);
+      }
     }
 
     return $this->total;

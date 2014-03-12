@@ -121,7 +121,7 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $this->assertEquals(3, $n->getPage(), 'Открыта страница №3');
     $this->assertEquals('/hello/page:3/', $n->getPageUrl()->toString(), 'Адрес текущей страницы');
 
-    $this->assertFalse($n->getTotal(), 'Количество неизвестно');
+    $this->assertEquals(0, $n->getTotal(), 'Количество неизвестно');
 
     $this->assertFalse($n->getTotalPages(), 'Количество страниц неизвестно');
     $this->assertFalse($n->getLastPage(), 'Неизвестна последняя страница');
