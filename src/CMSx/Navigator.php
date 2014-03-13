@@ -384,6 +384,38 @@ class Navigator
     return $this->orderby_options ? : false;
   }
 
+  public function getOrderByOptionsForSelect()
+  {
+    if (!$arr = $this->getOrderByOptions()) {
+      return false;
+    }
+
+    $out = array();
+    foreach ($arr as $o) {
+      $out[$o->asUrlParameter(true)] = $o->getAscName();
+      $out[$o->asUrlParameter(false)] = $o->getDescName();
+    }
+
+    return $out;
+  }
+
+  /** Варианты выбора сортировки в виде SELECT */
+  public function getOrderByAsSelect($placeholder = null, $attr = null, $selected = null)
+  {
+    return HTML::Select($this->getOrderByAsSelectOptions($selected), OrderBy::URL_PARAM, null, $attr, $placeholder);
+  }
+
+  /** Варианты выбора сортировки в виде опций для SELECT */
+  public function getOrderByAsSelectOptions($selected = null)
+  {
+    if (is_null($selected)) {
+      $o = $this->getOrderBy();
+      $selected = $o ? $o->asUrlParameter() : null;
+    }
+
+    return HTML::OptionListing($this->getOrderByOptionsForSelect(), $selected);
+  }
+
   /**
    * Вариант сортировки по имени колонки
    *

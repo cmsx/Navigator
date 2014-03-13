@@ -56,11 +56,28 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $this->assertFalse($n->getOrderByOptions(), 'Опции для сортировки еще не указаны');
 
     $n->addOrderBy('id', 'ID');
-    $n->addOrderBy('name');
+    $n->addOrderBy('name')
+      ->setTmplAscName('%s вверх')
+      ->setTmplDescName('%s вниз');
     $n->addOrderBy('count', 'Total', 'count(*)');
 
     $this->assertCount(3, $n->getOrderByOptions(), 'Всего три опции для сортировки');
     $this->assertArrayHasKey('id', $n->getOrderByOptions(), 'Ключи массива - имена столбцов');
+
+    $o = $n->getOrderByOption('name');
+    $this->assertEquals('Name вверх', $o->getAscName(), 'Шаблон для имени сортировки вверх');
+    $this->assertEquals('Name вниз', $o->getDescName(), 'Шаблон для имени сортировки вниз');
+
+    $exp = '<option value="id">ID по-возрастанию</option>' . "\n"
+      . '<option value="_id">ID по-убыванию</option>' . "\n"
+      . '<option value="name">Name вверх</option>' . "\n"
+      . '<option value="_name">Name вниз</option>' . "\n"
+      . '<option value="count">Total по-возрастанию</option>' . "\n"
+      . '<option value="_count">Total по-убыванию</option>' . "\n";
+    $this->assertEquals($exp, $n->getOrderByAsSelectOptions(), 'Генерация опций для SELECT');
+
+    $exp = '<select name="orderby">' . "\n" . $exp . '</select>';
+    $this->assertEquals($exp, $n->getOrderByAsSelect(), 'Генерация SELECT целиком');
 
     $this->assertFalse($n->checkOrderByOptionExists('blabla'), 'Опция не существует');
 

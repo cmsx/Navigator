@@ -22,6 +22,9 @@ class OrderBy
   /** @var URL */
   protected $url;
 
+  protected $tmpl_asc_name = '%s по-возрастанию';
+  protected $tmpl_desc_name = '%s по-убыванию';
+
   /** Получение имени для передачи как параметра в URL */
   public function asUrlParameter($asc = null)
   {
@@ -69,7 +72,7 @@ class OrderBy
 
   public function getName()
   {
-    return $this->name;
+    return $this->name ? : ucfirst($this->getColumn());
   }
 
   public function setSql($sql)
@@ -121,5 +124,45 @@ class OrderBy
     $this->navigator = $navigator;
 
     return $this;
+  }
+
+  /** Имя сортировки по-возрастанию */
+  public function getAscName()
+  {
+    return sprintf($this->tmpl_asc_name, $this->getName());
+  }
+
+  /** Имя сортировки по-убыванию */
+  public function getDescName()
+  {
+    return sprintf($this->tmpl_desc_name, $this->getName());
+  }
+
+  /** Шаблон для названия сортировки по-возрастанию. По умолчанию: %s по-возрастанию */
+  public function setTmplAscName($asc_name)
+  {
+    $this->tmpl_asc_name = $asc_name;
+
+    return $this;
+  }
+
+  /** Шаблон для названия сортировки по-возрастанию. По умолчанию: %s по-возрастанию */
+  public function getTmplAscName()
+  {
+    return $this->tmpl_asc_name;
+  }
+
+  /** Шаблон для названия сортировки по-убыванию. По умолчанию: %s по-убыванию */
+  public function setTmplDescName($desc_name)
+  {
+    $this->tmpl_desc_name = $desc_name;
+
+    return $this;
+  }
+
+  /** Шаблон для названия сортировки по-убыванию. По умолчанию: %s по-убыванию */
+  public function getTmplDescName()
+  {
+    return $this->tmpl_desc_name;
   }
 }
