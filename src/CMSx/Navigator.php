@@ -17,11 +17,13 @@ class Navigator
   const ERR_CLASS_IS_NOT_ITEM    = 20;
   const ERR_CLASS_IS_NOT_DEFINED = 30;
   const ERR_FILTER_NOT_CALLABLE  = 40;
+  const ERR_FILTER_NOT_EXISTS    = 50;
 
   protected static $err_arr = array(
     self::ERR_NO_ORDERBY_OPTION    => 'Поля "%s" нет в опциях для сортировки',
     self::ERR_CLASS_IS_NOT_ITEM    => 'Класс "%s" не является наследником Item',
     self::ERR_CLASS_IS_NOT_DEFINED => 'Класс для выборки не указан',
+    self::ERR_FILTER_NOT_EXISTS    => 'Фильтр "%s" не задан',
   );
 
   /** @var Request */
@@ -97,6 +99,27 @@ class Navigator
     );
   }
 
+  /** @return Filter[] */
+  public function getFilters()
+  {
+    return $this->filters ? : false;
+  }
+
+  public function checkFilterExists($col)
+  {
+    return isset($this->filters[$col]);
+  }
+
+  /** @return Filter */
+  public function getFilter($col)
+  {
+    if (!$this->checkFilterExists($col)) {
+      throw new Exception(sprintf(static::$err_arr[static::ERR_FILTER_NOT_EXISTS], $col), static::ERR_FILTER_NOT_EXISTS);
+    }
+
+    return $this->filters[$col];
+  }
+
   /**
    * В $callable фильтра при вызове передаются аргументы Navigator, Filter
    *
@@ -104,19 +127,19 @@ class Navigator
    */
   public function addFilter($col, $callable, $validator = null)
   {
-    return $this->filters[$col] = new Filter($col, $callable, $validator);
+    return $this->filters[$col] = new Filter($this, $col, $callable, $validator);
   }
 
   /** Фильтр значение равно */
   public function addFilterEqual($col, $validator = null)
   {
-    return $this->filters[$col] = new Equal($col, null, $validator);
+    return $this->filters[$col] = new Equal($this, $col, null, $validator);
   }
 
   /** Фильтр значение между */
   public function addFilterBetween($col, $validator = null)
   {
-    return $this->filters[$col] = new Between($col, null, $validator);
+    return $this->filters[$col] = new Between($this, $col, null, $validator);
   }
 
   /** Добавление условия для выборки Where */
@@ -324,7 +347,7 @@ class Navigator
     if ($this->filters) {
       foreach ($this->filters as $f) {
         $val = $this->getParameter($f->getColumn());
-        if ($f->validate($val)) {
+        if (!empty($val) && $f->validate($val)) {
           $u->addParameter($f->getColumn(), $val);
         }
       }

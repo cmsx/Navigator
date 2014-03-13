@@ -116,9 +116,14 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 
     $n = makeNavigator('/hello/');
     $n->setDefaultOrderBy('name', false);
+    $n->addFilterEqual('name');
 
     $this->assertEquals('_name', $n->getOrderBy()->asUrlParameter(), 'Сортировка по-умолчанию есть');
     $this->assertEquals('/hello/', $n->getUrlClean()->toString(), 'Сортировка по-умолчанию не подставляется в URL');
+
+    $n = makeNavigator('/hello/name:0/');
+    $this->assertEquals('/hello/', $n->getUrlClean()->toString(), 'Параметр не может быть нулем!');
+
   }
 
   function testPagination()

@@ -67,16 +67,76 @@ class ItemsTest extends PHPUnit_Framework_TestCase
   function testValidators()
   {
     $alnum = 'abc123';
-    $f = new Filter('test', 'is_numeric');
+    $f = new Filter(makeNavigator('/test:1/'), 'test');
     $this->assertTrue($f->validate($alnum), 'Валидатор не задан');
 
     $f->setValidator('is_numeric');
+    $this->assertEquals(1, $f->getCleanValue(), 'Корректное значение из URL после валидации');
+
     $this->assertFalse($f->validate($alnum), 'Только числа');
     $this->assertTrue($f->validate(123), 'Цифры можно');
 
     $f->setValidator('/^[a-z]+$/');
+    $this->assertFalse($f->getCleanValue(), 'Некорректное значение не передается');
+
     $this->assertFalse($f->validate($alnum), 'Только буквы');
     $this->assertTrue($f->validate('abc'), 'Буквы можно');
+
+    $f->setValidator(false);
+
+    $f->setOptions(array(1 => 'one', 2 => 'two'));
+    $this->assertTrue($f->validate(1), 'Верное значение - ключ массива');
+    $this->assertFalse($f->validate('one'), 'Нет такого ключа в массиве');
+
+    $this->assertTrue($f->validate(array(1, 2)), 'Все значения массива есть среди допустимых');
+    $this->assertFalse($f->validate(array(1, 3)), 'Один из элементов вне диапазона');
+
+    $exp = '<option value="1">one</option>' . "\n" . '<option selected="selected" value="2">two</option>' . "\n";
+    $this->assertEquals($exp, $f->asSelectOptions(2), 'Явно указанное значение для Опции для SELECT');
+
+    $exp = '<option selected="selected" value="1">one</option>' . "\n" . '<option value="2">two</option>' . "\n";
+    $this->assertEquals($exp, $f->asSelectOptions(), 'Значение опций выбрано из URL');
+
+    $exp = '<select name="test">' . "\n" . $exp . '</select>';
+    $this->assertEquals($exp, $f->asSelect(), 'Генерация списка SELECT');
+
+    $exp = '<input name="test" type="text" value="1" />';
+    $this->assertEquals($exp, $f->asInput(), 'Фильтр как поле для ввода со значением по-умолчанию');
+
+    $f->setValidator('/^[a-z]+$/');
+    $exp = '<input name="test" type="text" value="" />';
+    $this->assertEquals($exp, $f->asInput(), 'Значение не прошедшее валидацию не подставляется');
+
+    $exp = '<input class="hello" name="test" type="text" value="" />';
+    $this->assertEquals($exp, $f->asInput('hello'), 'Можно указать произвольные аттрибуты');
+
+    $f->setOptions(array('one', 'two'), true);
+    $this->assertTrue($f->validate('one'), 'Верное значение - значение массива');
+    $this->assertFalse($f->validate('three'), 'Нет такого значения в массиве');
+  }
+
+  function testFilterItem()
+  {
+    $n = makeNavigator('/some/');
+
+    $this->assertFalse($n->getFilters(), 'Фильтры не заданы');
+    $this->assertFalse($n->checkFilterExists('name'), 'Фильтра name еще нет');
+
+    try {
+      $n->getFilter('name');
+      $this->fail('Попытка получения фильтра, которого еще нет');
+    } catch (Exception $e) {
+      $this->assertEquals(Navigator::ERR_FILTER_NOT_EXISTS, $e->getCode(), 'Верный код ошибки');
+    }
+
+    $n->addFilterEqual('name');
+    $n->addFilterBetween('date');
+
+    $f = $n->getFilter('name');
+    $this->assertTrue($f instanceof Filter, 'Фильтр является объектом Filter');
+    $this->assertEquals('name', $f->getColumn(), 'Фильтр получен верно');
+
+    $this->assertEquals('/some/name:john/', $f->asUrl('john')->toString(), 'Адрес фильтра верный');
   }
 
   /** @dataProvider dataFilters() */
