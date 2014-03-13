@@ -149,14 +149,12 @@ class ItemsTest extends PHPUnit_Framework_TestCase
       ->setGreaterOrEqual(false); // Возвращается фильтр и его можно донастроить
     $n->addFilter(
       'date',
-      function(Navigator $navi, Filter $filter){
-        if ($val = $navi->getParameter($filter->getColumn())) {
-          if ($filter->validate($val)) {
-            $navi->addCondition('`created_at` >= "' . date('d.m.Y', strtotime('+' . $val . ' day')) . '"');
-          }
+      'is_numeric',
+      function (Navigator $navi, Filter $filter) {
+        if ($val = $filter->getCleanValue()) {
+          $navi->addCondition('`created_at` >= "' . date('d.m.Y', strtotime('+' . $val . ' day')) . '"');
         }
-      },
-      'is_numeric'
+      }
     );
 
     $this->assertEquals($exp, $n->processFilters(), $msg);

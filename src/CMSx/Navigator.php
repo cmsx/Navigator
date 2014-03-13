@@ -125,7 +125,7 @@ class Navigator
    *
    * @return Filter
    */
-  public function addFilter($col, $callable, $validator = null)
+  public function addFilter($col, $validator = null, $callable = null)
   {
     return $this->filters[$col] = new Filter($this, $col, $callable, $validator);
   }
