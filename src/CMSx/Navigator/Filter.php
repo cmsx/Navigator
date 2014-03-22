@@ -10,6 +10,7 @@ use CMSx\Navigator\Exception;
 /** Условие для выборки */
 class Filter
 {
+  protected $field;
   protected $column;
   protected $callable;
   protected $validator;
@@ -176,6 +177,7 @@ class Filter
     return $this->callable;
   }
 
+  /** Имя параметра в адресе */
   public function setColumn($col)
   {
     $this->column = $col;
@@ -183,9 +185,24 @@ class Filter
     return $this;
   }
 
+  /** Имя параметра в адресе */
   public function getColumn()
   {
     return $this->column;
+  }
+
+  /** Поле в SQL */
+  public function setField($field)
+  {
+    $this->field = $field;
+
+    return $this;
+  }
+
+  /** Поле в SQL */
+  public function getField()
+  {
+    return $this->field ? : $this->getColumn();
   }
 
   /** Валидатор для значений. Callable или регулярное выражение */

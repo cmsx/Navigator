@@ -19,7 +19,7 @@ class Between extends Filter
     if ($from_val = $navigator->getParameter($from)) {
       if ($this->validate($from_val)) {
         $s = $this->getGreaterOrEqual() ? '>=' : '>';
-        $c = sprintf('`%s` %s %s', $from, $s, Builder::QuoteValue($from_val));
+        $c = sprintf('`%s` %s %s', $this->getField(), $s, Builder::QuoteValue($from_val));
 
         $navigator->addCondition($c);
       }
@@ -28,7 +28,7 @@ class Between extends Filter
     if ($to_val = $navigator->getParameter($to)) {
       if ($this->validate($to_val)) {
         $s = $this->getLessOrEqual() ? '<=' : '<';
-        $c = sprintf('`%s` %s %s', $to, $s, Builder::QuoteValue($to_val));
+        $c = sprintf('`%s` %s %s', $this->getField(), $s, Builder::QuoteValue($to_val));
 
         $navigator->addCondition($c);
       }

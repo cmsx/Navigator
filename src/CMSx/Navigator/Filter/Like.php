@@ -30,7 +30,7 @@ class Like extends Filter
   public function prepareLikeCondition($value)
   {
     if ($val = $this->cleanValue($value)) {
-      return sprintf($this->like_template, $this->getColumn(), $val);
+      return sprintf($this->like_template, $this->getField(), $val);
     }
   }
 

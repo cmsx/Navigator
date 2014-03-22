@@ -134,6 +134,17 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $btw = $n->addFilterBetween('date');
     $lk  = $n->addFilterLike('addr');
 
+    $f = $n->getFilter('name');
+    $this->assertTrue($f instanceof Filter, 'Фильтр является объектом Filter');
+    $this->assertEquals('name', $f->getColumn(), 'Фильтр получен верно');
+
+    $this->assertEquals('/some/name:john/', $f->asUrl('john')->toString(), 'Адрес фильтра верный');
+
+    // Equal
+    $this->assertEquals('name', $eq->getField(), 'По-умолчанию поле SQL равно имени параметра');
+    $eq->setField('fullname');
+    $this->assertEquals('fullname', $eq->getField(), 'Явно заданное поле SQL');
+
     // Between
     $this->assertEquals('date_from', $btw->getColumnFrom(), 'Параметр от');
     $this->assertEquals('date_to', $btw->getColumnTo(), 'Параметр до');
@@ -150,12 +161,6 @@ class ItemsTest extends PHPUnit_Framework_TestCase
       $lk->prepareLikeCondition('абц'),
       'Подготовка условия по своему шаблону'
     );
-
-    $f = $n->getFilter('name');
-    $this->assertTrue($f instanceof Filter, 'Фильтр является объектом Filter');
-    $this->assertEquals('name', $f->getColumn(), 'Фильтр получен верно');
-
-    $this->assertEquals('/some/name:john/', $f->asUrl('john')->toString(), 'Адрес фильтра верный');
   }
 
   /** @dataProvider dataFilters() */
@@ -188,10 +193,10 @@ class ItemsTest extends PHPUnit_Framework_TestCase
       array('/hello/name:abc/', array('`id` > 7', 'name' => 'abc'), 'Условие Equal по-умолчанию'),
       array(
         '/hello/name:123/id_from:10/id_to:20/',
-        array('`id` > 7', '`id_from` > 10', '`id_to` <= 20'),
+        array('`id` > 7', '`id` > 10', '`id` <= 20'),
         'Значение name не прошло фильтр, ID фильтруется с двух сторон'
       ),
-      array('/hello/id_from:abc/id_to:10/', array('`id` > 7', '`id_to` <= 10'), 'ID фильтруется с одной стороны'),
+      array('/hello/id_from:abc/id_to:10/', array('`id` > 7', '`id` <= 10'), 'ID фильтруется с одной стороны'),
       array(
         '/hello/date:1/',
         array('`id` > 7', '`created_at` >= "' . date('d.m.Y', strtotime('+1 day')) . '"'),

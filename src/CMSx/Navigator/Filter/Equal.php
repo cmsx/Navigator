@@ -17,6 +17,6 @@ class Equal extends Filter
       return false;
     }
 
-    $navigator->addCondition($val, $this->getColumn());
+    $navigator->addCondition($val, $this->getField());
   }
 }
