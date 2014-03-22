@@ -7,6 +7,7 @@ use CMSx\DB\Item;
 use CMSx\Navigator\Filter;
 use CMSx\Navigator\OrderBy;
 use CMSx\Navigator\Exception;
+use CMSx\Navigator\Filter\Like;
 use CMSx\Navigator\Filter\Equal;
 use CMSx\Navigator\Filter\Between;
 use Symfony\Component\HttpFoundation\Request;
@@ -140,6 +141,12 @@ class Navigator
   public function addFilterBetween($col, $validator = null)
   {
     return $this->filters[$col] = new Between($this, $col, null, $validator);
+  }
+
+  /** Фильтр значение LIKE */
+  public function addFilterLike($col, $validator = null)
+  {
+    return $this->filters[$col] = new Like($this, $col, null, $validator);
   }
 
   /** Добавление условия для выборки Where */

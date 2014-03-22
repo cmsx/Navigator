@@ -130,11 +130,26 @@ class ItemsTest extends PHPUnit_Framework_TestCase
       $this->assertEquals(Navigator::ERR_FILTER_NOT_EXISTS, $e->getCode(), 'Верный код ошибки');
     }
 
-    $eq = $n->addFilterEqual('name');
+    $eq  = $n->addFilterEqual('name');
     $btw = $n->addFilterBetween('date');
+    $lk  = $n->addFilterLike('addr');
 
+    // Between
     $this->assertEquals('date_from', $btw->getColumnFrom(), 'Параметр от');
     $this->assertEquals('date_to', $btw->getColumnTo(), 'Параметр до');
+
+    // Like
+    $this->assertEquals('оЛолё%ло%123', $lk->cleanValue('оЛолё"""   ло 123'), 'Очистка значения по-умолчанию');
+    $lk->setRegularCleaner('/[^а-я]+/u');
+    $this->assertEquals('оло%ло', $lk->cleanValue(' оло"""   ло 123 '), 'Очистка значения по своей регулярке');
+
+    $this->assertEquals('`addr` LIKE ("путе%")', $lk->prepareLikeCondition('путе'), 'Подготовка условия по-умолчанию');
+    $lk->setLikeTemplate('`%s` LIKE ("%%%s%%") AND `name` LIKE("%2$s%%")');
+    $this->assertEquals(
+      '`addr` LIKE ("%абц%") AND `name` LIKE("абц%")',
+      $lk->prepareLikeCondition('абц'),
+      'Подготовка условия по своему шаблону'
+    );
 
     $f = $n->getFilter('name');
     $this->assertTrue($f instanceof Filter, 'Фильтр является объектом Filter');
@@ -149,6 +164,7 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $n = makeNavigator($url);
     $n->addDefaultCondition('`id` > 7');
     $n->addFilterEqual('name', '/^[a-z]+$/');
+    $n->addFilterLike('addr');
     $n->addFilterBetween('id', 'is_numeric')
       ->setGreaterOrEqual(false); // Возвращается фильтр и его можно донастроить
     $n->addFilter(
@@ -181,6 +197,7 @@ class ItemsTest extends PHPUnit_Framework_TestCase
         array('`id` > 7', '`created_at` >= "' . date('d.m.Y', strtotime('+1 day')) . '"'),
         'Пользовательский фильтр на дату'
       ),
+      array('/hello/addr:при/', array('`id` > 7', '`addr` LIKE ("при%")'), 'Фильтр Like')
     );
   }
 
