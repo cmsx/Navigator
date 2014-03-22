@@ -89,7 +89,7 @@ class Filter
   public function process()
   {
     if ($c = $this->callable) {
-      return $c($this->navigator, $this);
+      return call_user_func_array($c, array($this->navigator, $this));
     }
   }
 

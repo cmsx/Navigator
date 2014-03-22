@@ -65,5 +65,8 @@ class MyItem extends Item
 /** Класс не являющийся Item */
 class BlaBla
 {
-
+  public static function Hello()
+  {
+    return 'Hello';
+  }
 }

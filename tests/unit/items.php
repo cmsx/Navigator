@@ -163,6 +163,14 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     );
   }
 
+  function testFilterStaticCallable()
+  {
+    $n = makeNavigator('/hello/');
+    $f = $n->addFilter('test', null, 'BlaBla::Hello');
+
+    $this->assertEquals('Hello', $f->process(), 'Вызов статичного метода');
+  }
+
   /** @dataProvider dataFilters() */
   function testFilters($url, $exp, $msg)
   {
