@@ -110,6 +110,10 @@ class Filter
     } else {
 
       if ($arr = $this->getOptions()) {
+        if (empty($value)) {
+          return false;
+        }
+
         if ($this->getOptionsIgnoreKeys()) {
           if (!in_array($value, $arr)) {
             return false;

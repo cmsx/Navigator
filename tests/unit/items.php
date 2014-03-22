@@ -87,6 +87,7 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $f->setOptions(array(1 => 'one', 2 => 'two'));
     $this->assertTrue($f->validate(1), 'Верное значение - ключ массива');
     $this->assertFalse($f->validate('one'), 'Нет такого ключа в массиве');
+    $this->assertFalse($f->validate(false), 'Отсутствующий параметр');
 
     $this->assertTrue($f->validate(array(1, 2)), 'Все значения массива есть среди допустимых');
     $this->assertFalse($f->validate(array(1, 3)), 'Один из элементов вне диапазона');
