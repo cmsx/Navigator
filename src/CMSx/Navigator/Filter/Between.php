@@ -13,8 +13,8 @@ class Between extends Filter
 
   public function process(Navigator $navigator)
   {
-    $from = $this->getColumn() . '_from';
-    $to   = $this->getColumn() . '_to';
+    $from = $this->getColumnFrom();
+    $to   = $this->getColumnTo();
 
     if ($from_val = $navigator->getParameter($from)) {
       if ($this->validate($from_val)) {
@@ -33,6 +33,18 @@ class Between extends Filter
         $navigator->addCondition($c);
       }
     }
+  }
+
+  /** Имя параметра "от" */
+  public function getColumnFrom()
+  {
+    return $this->getColumn() . '_from';
+  }
+
+  /** Имя параметра "до" */
+  public function getColumnTo()
+  {
+    return $this->getColumn() . '_to';
   }
 
   /** Сравнение > или >= */

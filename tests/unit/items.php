@@ -130,8 +130,11 @@ class ItemsTest extends PHPUnit_Framework_TestCase
       $this->assertEquals(Navigator::ERR_FILTER_NOT_EXISTS, $e->getCode(), 'Верный код ошибки');
     }
 
-    $n->addFilterEqual('name');
-    $n->addFilterBetween('date');
+    $eq = $n->addFilterEqual('name');
+    $btw = $n->addFilterBetween('date');
+
+    $this->assertEquals('date_from', $btw->getColumnFrom(), 'Параметр от');
+    $this->assertEquals('date_to', $btw->getColumnTo(), 'Параметр до');
 
     $f = $n->getFilter('name');
     $this->assertTrue($f instanceof Filter, 'Фильтр является объектом Filter');
