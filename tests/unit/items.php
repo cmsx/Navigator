@@ -116,6 +116,26 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $this->assertFalse($f->validate('three'), 'Нет такого значения в массиве');
   }
 
+  function testFilterBetween()
+  {
+    $n = makeNavigator('/some/age_from:today/age_to:20/');
+    $f = $n->addFilterBetween('age');
+
+    $this->assertEquals('today', $f->getCleanValueFrom(), 'Значение от');
+    $this->assertEquals(20, $f->getCleanValueTo(), 'Значение до');
+
+    $f->setValidator('/^[a-z]+$/');
+
+    $this->assertEquals('today', $f->getCleanValueFrom(), 'Значение от проходит валидацию');
+    $this->assertFalse($f->getCleanValueTo(), 'Значение от не проходит валидацию');
+
+    $exp = '<input class="hello" name="age_from" type="text" value="today" />';
+    $this->assertEquals($exp, $f->asInputFrom('hello'), 'Рендер инпута от');
+
+    $exp = '<input id="123" name="age_to" type="text" value="" />';
+    $this->assertEquals($exp, $f->asInputTo(array('id' => 123)), 'Рендер инпута до');
+  }
+
   function testFilterItem()
   {
     $n = makeNavigator('/some/');

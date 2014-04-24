@@ -131,19 +131,31 @@ class Navigator
     return $this->filters[$col] = new Filter($this, $col, $callable, $validator);
   }
 
-  /** Фильтр значение равно */
+  /**
+   * Фильтр значение равно
+   *
+   * @return Equal
+   */
   public function addFilterEqual($col, $validator = null)
   {
     return $this->filters[$col] = new Equal($this, $col, null, $validator);
   }
 
-  /** Фильтр значение между */
+  /**
+   * Фильтр значение между
+   *
+   * @return Between
+   */
   public function addFilterBetween($col, $validator = null)
   {
     return $this->filters[$col] = new Between($this, $col, null, $validator);
   }
 
-  /** Фильтр значение LIKE */
+  /**
+   * Фильтр значение LIKE
+   *
+   * @return Like
+   */
   public function addFilterLike($col, $validator = null)
   {
     return $this->filters[$col] = new Like($this, $col, null, $validator);

@@ -2,6 +2,7 @@
 
 namespace CMSx\Navigator\Filter;
 
+use CMSx\HTML;
 use CMSx\Navigator;
 use CMSx\DB\Builder;
 use CMSx\Navigator\Filter;
@@ -60,6 +61,48 @@ class Between extends Filter
   public function getIsDate()
   {
     return $this->is_date;
+  }
+
+  /**
+   * Генерация тега INPUT для фильтра от.
+   * Значение будет подставлено если оно проходит валидацию
+   */
+  public function asInputFrom($attr = null, $value = null)
+  {
+    if (is_null($value)) {
+      $value = $this->getCleanValueFrom();
+    }
+
+    return HTML::Input($this->getColumnFrom(), $value, $attr);
+  }
+
+  /**
+   * Генерация тега INPUT для фильтра до.
+   * Значение будет подставлено если оно проходит валидацию
+   */
+  public function asInputTo($attr = null, $value = null)
+  {
+    if (is_null($value)) {
+      $value = $this->getCleanValueTo();
+    }
+
+    return HTML::Input($this->getColumnTo(), $value, $attr);
+  }
+
+  /** Получение чистого значения фильтра после валидации */
+  public function getCleanValueFrom()
+  {
+    $val = $this->getNavigator()->getParameter($this->getColumnFrom());
+
+    return $this->validate($val) ? $val : false;
+  }
+
+  /** Получение чистого значения фильтра после валидации */
+  public function getCleanValueTo()
+  {
+    $val = $this->getNavigator()->getParameter($this->getColumnTo());
+
+    return $this->validate($val) ? $val : false;
   }
 
   /** Имя параметра "от" */
