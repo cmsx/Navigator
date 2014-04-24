@@ -111,7 +111,7 @@ class Navigator
     return isset($this->filters[$col]);
   }
 
-  /** @return Filter */
+  /** @return Filter|Equal|Between|Like */
   public function getFilter($col)
   {
     if (!$this->checkFilterExists($col)) {
