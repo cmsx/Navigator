@@ -196,8 +196,14 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $n = makeNavigator('/hello/date_from:18.01.2014/date_to:20.01.2014/');
     $f = $n->addFilterBetween('date');
 
+    $from = '`date` >= 12345';
+    $this->assertEquals($from, $f->prepareFromCondition('12345'), 'Подстановка своего значения в выражение от');
+
     $from = '`date` >= "18.01.2014"';
     $this->assertEquals($from, $f->prepareFromCondition(), 'Подготовленное выражение от');
+
+    $to = '`date` <= 12345';
+    $this->assertEquals($to, $f->prepareToCondition('12345'), 'Подстановка своего значения в выражение до');
 
     $to = '`date` <= "20.01.2014"';
     $this->assertEquals($to, $f->prepareToCondition(), 'Подготовленное выражение до');

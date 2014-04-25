@@ -25,19 +25,23 @@ class Between extends Filter
   }
 
   /** Подготовка условия для нижней границы диапазона */
-  public function prepareFromCondition()
+  public function prepareFromCondition($val = null)
   {
     $cond = false;
-    if ($from_val = $this->getCleanValueFrom()) {
-      if ($this->getIsDate()) {
-        $from_val = date('Y-m-d 00:00', strtotime($from_val));
+    if (is_null($val)) {
+      if ($val = $this->getCleanValueFrom()) {
+        if ($this->getIsDate()) {
+          $val = date('Y-m-d 00:00', strtotime($val));
+        }
       }
+    }
 
+    if ($val) {
       $cond = sprintf(
         '`%s` %s %s',
         $this->getField(),
         $this->getGreaterOrEqual() ? '>=' : '>',
-        Builder::QuoteValue($from_val)
+        Builder::QuoteValue($val)
       );
     }
 
@@ -45,19 +49,23 @@ class Between extends Filter
   }
 
   /** Подготовка условия для верхней границы диапазона */
-  public function prepareToCondition()
+  public function prepareToCondition($val = null)
   {
     $cond = false;
-    if ($to_val = $this->getCleanValueTo()) {
-      if ($this->getIsDate()) {
-        $to_val = date('Y-m-d 23:59:59', strtotime($to_val));
+    if (is_null($val)) {
+      if ($val = $this->getCleanValueTo()) {
+        if ($this->getIsDate()) {
+          $val = date('Y-m-d 23:59:59', strtotime($val));
+        }
       }
+    }
 
+    if ($val) {
       $cond = sprintf(
         '`%s` %s %s',
         $this->getField(),
         $this->getLessOrEqual() ? '<=' : '<',
-        Builder::QuoteValue($to_val)
+        Builder::QuoteValue($val)
       );
     }
 
