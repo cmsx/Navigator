@@ -174,10 +174,15 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $lk->setRegularCleaner('/[^а-я]+/u');
     $this->assertEquals('оло%ло', $lk->cleanValue(' оло"""   ло 123 '), 'Очистка значения по своей регулярке');
 
-    $this->assertEquals('`addr` LIKE ("путе%")', $lk->prepareLikeCondition('путе'), 'Подготовка условия по-умолчанию');
-    $lk->setLikeTemplate('`%s` LIKE ("%%%s%%") AND `name` LIKE("%2$s%%")');
+    $lk->setField('`some`.`addr`');
+
+    $exp = '`some`.`addr` LIKE ("абв%")';
+    $this->assertEquals($exp, $lk->prepareLikeCondition('абв'), 'Произвольное имя колонки');
+
+    $this->assertEquals('`some`.`addr` LIKE ("путе%")', $lk->prepareLikeCondition('путе'), 'Подготовка условия по-умолчанию');
+    $lk->setLikeTemplate('%s LIKE ("%%%s%%") AND `name` LIKE("%2$s%%")');
     $this->assertEquals(
-      '`addr` LIKE ("%абц%") AND `name` LIKE("абц%")',
+      '`some`.`addr` LIKE ("%абц%") AND `name` LIKE("абц%")',
       $lk->prepareLikeCondition('абц'),
       'Подготовка условия по своему шаблону'
     );
@@ -214,6 +219,14 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $f->setIsDate(true);
     $exp = array('`date` >= "2014-01-18 00:00"', '`date` <= "2014-01-20 23:59:59"');
     $this->assertEquals($exp, $n->processFilters(), 'Обработка диапазона дат');
+
+    $f->setField('`some`.`date`');
+
+    $exp = '`some`.`date` >= "2014-01-18 00:00"';
+    $this->assertEquals($exp, $f->prepareFromCondition(), 'Закавычивание колонки от');
+
+    $exp = '`some`.`date` <= "2014-01-20 23:59:59"';
+    $this->assertEquals($exp, $f->prepareToCondition(), 'Закавычивание колонки до');
   }
 
   /** @dataProvider dataFilters() */

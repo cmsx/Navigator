@@ -2,13 +2,14 @@
 
 namespace CMSx\Navigator\Filter;
 
+use CMSx\DB\Builder;
 use CMSx\Navigator;
 use CMSx\Navigator\Filter;
 
 class Like extends Filter
 {
   protected $prepare;
-  protected $like_template = '`%s` LIKE ("%s%%")';
+  protected $like_template = '%s LIKE ("%s%%")';
   protected $regular_cleaner = '/[^a-zа-яёЁ0-9]+/ui';
 
   public function process(Navigator $navigator)
@@ -27,7 +28,7 @@ class Like extends Filter
 
     $cond = false;
     if ($val && $term = $this->cleanValue($val)) {
-      $cond = sprintf($this->like_template, $this->getField(), $term);
+      $cond = sprintf($this->like_template, Builder::QuoteKey($this->getField()), $term);
     }
 
     return $cond;

@@ -38,8 +38,8 @@ class Between extends Filter
 
     if ($val) {
       $cond = sprintf(
-        '`%s` %s %s',
-        $this->getField(),
+        '%s %s %s',
+        Builder::QuoteKey($this->getField()),
         $this->getGreaterOrEqual() ? '>=' : '>',
         Builder::QuoteValue($val)
       );
@@ -62,8 +62,8 @@ class Between extends Filter
 
     if ($val) {
       $cond = sprintf(
-        '`%s` %s %s',
-        $this->getField(),
+        '%s %s %s',
+        Builder::QuoteKey($this->getField()),
         $this->getLessOrEqual() ? '<=' : '<',
         Builder::QuoteValue($val)
       );
