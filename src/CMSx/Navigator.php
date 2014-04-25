@@ -365,9 +365,17 @@ class Navigator
 
     if ($this->filters) {
       foreach ($this->filters as $f) {
-        $val = $this->getParameter($f->getColumn());
-        if (!empty($val) && $f->validate($val)) {
-          $u->addParameter($f->getColumn(), $val);
+        if ($f instanceof Between) {
+          if ($val = $f->getCleanValueFrom()) {
+            $u->addParameter($f->getColumnFrom(), $val);
+          }
+          if ($val = $f->getCleanValueTo()) {
+            $u->addParameter($f->getColumnTo(), $val);
+          }
+        } else {
+          if ($val = $f->getCleanValue()) {
+            $u->addParameter($f->getColumn(), $val);
+          }
         }
       }
     }

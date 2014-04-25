@@ -141,6 +141,11 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
     $n = makeNavigator('/hello/name:0/');
     $this->assertEquals('/hello/', $n->getUrlClean()->toString(), 'Параметр не может быть нулем!');
 
+    $n = makeNavigator('/hello/age_from:10/age_to:20/ololo:123/');
+    $n->addFilterBetween('age');
+
+    $exp = '/hello/age_from:10/age_to:20/';
+    $this->assertEquals($exp, $n->getUrlClean()->toString(), 'Чистый урл для Between фильтров');
   }
 
   function testPagination()
