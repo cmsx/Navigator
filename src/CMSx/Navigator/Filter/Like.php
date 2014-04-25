@@ -13,25 +13,24 @@ class Like extends Filter
 
   public function process(Navigator $navigator)
   {
-    if (!$val = $navigator->getParameter($this->getColumn())) {
-      return false;
-    }
-
-    if (!$this->validate($val)) {
-      return false;
-    }
-
-    if ($cond = $this->prepareLikeCondition($val)) {
+    if ($cond = $this->prepareLikeCondition()) {
       $navigator->addCondition($cond);
     }
   }
 
   /** Подготовка SQL выражения по-умолчанию */
-  public function prepareLikeCondition($value)
+  public function prepareLikeCondition($val = null)
   {
-    if ($val = $this->cleanValue($value)) {
-      return sprintf($this->like_template, $this->getField(), $val);
+    if (is_null($val)) {
+      $val = $this->getCleanValue();
     }
+
+    $cond = false;
+    if ($val && $term = $this->cleanValue($val)) {
+      $cond = sprintf($this->like_template, $this->getField(), $term);
+    }
+
+    return $cond;
   }
 
   /** Очистка значения от недопустимых символов по регулярке */

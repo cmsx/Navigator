@@ -9,14 +9,8 @@ class Equal extends Filter
 {
   public function process(Navigator $navigator)
   {
-    if (!$val = $navigator->getParameter($this->getColumn())) {
-      return false;
+    if ($val = $this->getCleanValue()) {
+      $navigator->addCondition($val, $this->getField());
     }
-
-    if (!$this->validate($val)) {
-      return false;
-    }
-
-    $navigator->addCondition($val, $this->getField());
   }
 }
