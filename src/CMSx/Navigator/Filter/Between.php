@@ -15,12 +15,16 @@ class Between extends Filter
 
   public function process(Navigator $navigator)
   {
-    if ($from = $this->prepareFromCondition()) {
-      $navigator->addCondition($from);
-    }
+    if ($this->getCallable()) {
+      parent::process();
+    } else {
+      if ($from = $this->prepareFromCondition()) {
+        $navigator->addCondition($from);
+      }
 
-    if ($to = $this->prepareToCondition()) {
-      $navigator->addCondition($to);
+      if ($to = $this->prepareToCondition()) {
+        $navigator->addCondition($to);
+      }
     }
   }
 

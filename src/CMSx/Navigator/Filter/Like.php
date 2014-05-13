@@ -14,8 +14,12 @@ class Like extends Filter
 
   public function process(Navigator $navigator)
   {
-    if ($cond = $this->prepareLikeCondition()) {
-      $navigator->addCondition($cond);
+    if ($this->getCallable()) {
+      parent::process();
+    } else {
+      if ($cond = $this->prepareLikeCondition()) {
+        $navigator->addCondition($cond);
+      }
     }
   }
 

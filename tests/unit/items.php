@@ -229,6 +229,38 @@ class ItemsTest extends PHPUnit_Framework_TestCase
     $this->assertEquals($exp, $f->prepareToCondition(), 'Закавычивание колонки до');
   }
 
+  function testBetweenCallable()
+  {
+    $n = makeNavigator('/hello/age_from:18/');
+    $f = $n->addFilterBetween('age');
+
+    $this->assertEquals(array('`age` >= 18'), $n->processFilters(), 'Фильтры по-умолчанию');
+
+    $f->setCallable(
+      function (Navigator $navi, Filter\Between $f) {
+        $navi->addCondition($f->getCleanValueFrom(), 'two');
+      }
+    );
+    $exp = array('two' => 18);
+    $this->assertEquals($exp, $n->processFilters(), 'Свой фильтр');
+  }
+
+  function testLikeCallable()
+  {
+    $n = makeNavigator('/hello/name:ололо/');
+    $f = $n->addFilterLike('name');
+
+    $this->assertEquals(array('`name` LIKE ("ололо%")'), $n->processFilters(), 'Фильтры по-умолчанию');
+
+    $f->setCallable(
+      function (Navigator $navi, Filter\Like $f) {
+        $navi->addCondition($f->prepareLikeCondition('пыщпыщ'));
+      }
+    );
+    $exp = array('`name` LIKE ("пыщпыщ%")');
+    $this->assertEquals($exp, $n->processFilters(), 'Свой фильтр');
+  }
+
   /** @dataProvider dataFilters() */
   function testFilters($url, $exp, $msg)
   {
