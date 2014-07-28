@@ -15,6 +15,7 @@ class OrderBy
   protected $name;
   protected $sql;
   protected $asc = true;
+  protected $inverse;
 
   /** @var Navigator */
   protected $navigator;
@@ -48,7 +49,11 @@ class OrderBy
   /** Получение в виде инструкции для сортировки SQL */
   public function asSQL()
   {
-    return ($this->getSql() ? : '`' . $this->getColumn() . '`') . ' ' . ($this->getAsc() ? 'ASC' : 'DESC');
+    $q = $this->getInverse()
+      ? ($this->getAsc() ? 'DESC' : 'ASC')
+      : ($this->getAsc() ? 'ASC' : 'DESC');
+
+    return ($this->getSql() ? : '`' . $this->getColumn() . '`') . ' ' . $q;
   }
 
   public function setColumn($column)
@@ -124,6 +129,20 @@ class OrderBy
     $this->navigator = $navigator;
 
     return $this;
+  }
+
+  /** Обратная сортировка */
+  public function setInverse($inverse)
+  {
+    $this->inverse = $inverse;
+
+    return $this;
+  }
+
+  /** Обратная сортировка */
+  public function getInverse()
+  {
+    return $this->inverse;
   }
 
   /** Имя сортировки по-возрастанию */

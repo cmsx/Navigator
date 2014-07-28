@@ -104,6 +104,14 @@ class NavigatorTest extends PHPUnit_Framework_TestCase
 
     $s = $n->getOrderBy()->asUrl()->toString();
     $this->assertEquals('/hello/orderby:_count/', $s, 'Адрес для сортировки без лишних параметров');
+
+    $ob = $n->addOrderBy('ololo');
+    $this->assertEquals('`ololo` ASC', $ob->setAsc(true)->asSQL(), 'Сортировка в прямом порядке по возрастанию');
+    $this->assertEquals('`ololo` DESC', $ob->setAsc(false)->asSQL(), 'Сортировка в прямом порядке по убыванию');
+
+    $ob->setInverse(true);
+    $this->assertEquals('`ololo` DESC', $ob->setAsc(true)->asSQL(), 'Сортировка в обратном порядке по возрастанию');
+    $this->assertEquals('`ololo` ASC', $ob->setAsc(false)->asSQL(), 'Сортировка в обратном порядке по убыванию');
   }
 
   function testCleanUrl()
